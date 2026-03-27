@@ -64,6 +64,12 @@ chmod +x install.sh manage.sh uninstall.sh validate.sh
 ./install.sh
 ```
 
+Important:
+
+- default install paths and service names are now namespaced per workspace
+- uninstall targets the current workspace-scoped install by default
+- this reduces accidental same-host collisions between multiple workspaces using the same skill
+
 On Debian / Ubuntu, if Python virtual environment support is missing:
 
 ```bash
@@ -202,13 +208,13 @@ Do not publish:
 
 ## Uninstall
 
-Remove services only:
+Remove only the current workspace-scoped services:
 
 ```bash
 ./uninstall.sh
 ```
 
-Remove services and installed files:
+Remove the current workspace-scoped services and installed files:
 
 ```bash
 ./uninstall.sh --purge

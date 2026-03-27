@@ -125,6 +125,38 @@ What to check:
 - `./manage.sh doctor`
 - `./manage.sh logs`
 
+## Broker starts and exits immediately
+
+Likely causes:
+
+- another broker for the same Discord bot token is already active on this machine
+- a stale token lock file remains after an abnormal exit
+
+What to check:
+
+- `./manage.sh doctor`
+- broker logs
+- token lock path, owner workspace, and owner pid
+
+## Interactions appear in the wrong workspace or seem duplicated
+
+Likely causes:
+
+- another workspace is also consuming the same Discord bot token
+- another broker process is active on the same host
+- multiple hosts are intentionally sharing one Discord bot token
+
+What to check:
+
+- `./manage.sh doctor`
+- broker process list on the host
+- whether the same token is being reused across multiple workspaces or machines
+
+Important limitation:
+
+- workspace namespacing and token locks reduce same-host collisions
+- they do not provide distributed coordination across multiple hosts
+
 ## Gateway disconnects / WebSocket closes
 
 Likely causes:
