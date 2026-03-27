@@ -1,3 +1,4 @@
+Current status: beta / release candidate
 # discord-component-v2
 
 **Current status:** beta / release candidate
