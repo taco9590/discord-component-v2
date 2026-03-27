@@ -105,11 +105,35 @@ On Debian / Ubuntu, if Python virtual environment support is missing:
 
 By default, the broker defers the interaction and the worker edits the interaction response with a short status message.
 
-You can change this with `DISCORD_COMPONENT_V2_INTERACTION_STATUS`:
+Important distinction:
+
+- transport success means the interaction was accepted and delivered toward OpenClaw
+- business-action success means the requested task actually completed
+
+The default worker success text reflects transport success, not guaranteed business-action completion.
+
+You can change the global default behavior with `DISCORD_COMPONENT_V2_INTERACTION_STATUS`:
 
 - `full` — default; show success, delay, and failure statuses
 - `errors-only` — suppress success status, keep delay / failure notices
 - `silent` — remove the deferred placeholder and stay silent
+
+You can also override behavior per payload with `interaction.response`, for example:
+
+```json
+{
+  "interaction": {
+    "response": {
+      "mode": "errors-only",
+      "show_success": false,
+      "transport_success_text": "Queued for agent processing.",
+      "local_success_text": "Done.",
+      "delayed_text": "Accepted, but delivery was delayed.",
+      "error_text": "The action could not be completed."
+    }
+  }
+}
+```
 
 Example:
 
@@ -123,8 +147,10 @@ export DISCORD_COMPONENT_V2_INTERACTION_STATUS=errors-only
 - Discord Components v2 messages require the `IS_COMPONENTS_V2` flag, and once set it cannot be removed from that message.
 - Deferred component interactions must be acknowledged quickly; otherwise Discord will show `This component has expired.`
 - Interaction tokens are only valid for a limited time, so delayed completion should fall back cleanly.
-- OpenClaw routes Discord replies deterministically to the originating channel/session; this package preserves that routing when reinjecting.
+- This package pins reinjection to the originating Discord channel. That is stronger than ad-hoc routing, but it is not the same thing as guaranteed session affinity in every shared-channel scenario.
 - For critical click paths, this package does not rely on OpenClaw's in-process component registry.
+- Broker reconnect is automatic, but current recovery is best-effort rather than guaranteed event replay.
+- Modal trigger and modal submit single-use behavior can now be controlled separately in payloads.
 
 ## Troubleshooting
 

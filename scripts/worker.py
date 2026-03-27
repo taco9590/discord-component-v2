@@ -17,9 +17,10 @@ from lib import db
 from lib.config import discord_user_agent, load_discord_token
 from scripts import injector
 
-SUCCESS_TEXT = "✅ Delivered to the agent."
-DELAY_TEXT = "⚠️ Accepted, but processing was delayed."
+SUCCESS_TEXT = "✅ Accepted and delivered to OpenClaw."
+DELAY_TEXT = "⚠️ Accepted, but delivery to OpenClaw was delayed."
 FAIL_TEXT = "❌ An error occurred while processing the interaction."
+DEFAULT_LOCAL_SUCCESS_TEXT = "✅ Completed."
 
 
 def _load_component_payload(message_id: str, custom_id: str) -> tuple[str, Dict[str, Any]]:
@@ -145,8 +146,37 @@ async def _delete_original(app_id: str, interaction_token: str) -> tuple[int, An
 def _status_mode() -> str:
     return str(os.environ.get("DISCORD_COMPONENT_V2_INTERACTION_STATUS", "full")).strip().lower() or "full"
 
-def complete_interaction(app_id: Optional[str], interaction_token: Optional[str], channel_id: Optional[str], text: str) -> bool:
-    mode = _status_mode()
+
+def _response_policy(payload_obj: Dict[str, Any]) -> Dict[str, Any]:
+    interaction = payload_obj.get("interaction") if isinstance(payload_obj.get("interaction"), dict) else {}
+    response = interaction.get("response") if isinstance(interaction.get("response"), dict) else {}
+    return response
+
+
+def _status_text(payload_obj: Dict[str, Any], default_text: str, *, outcome: str) -> str:
+    response = _response_policy(payload_obj)
+    if outcome == "success_local":
+        return str(response.get("local_success_text") or response.get("success_text") or DEFAULT_LOCAL_SUCCESS_TEXT)
+    if outcome == "success_transport":
+        return str(response.get("transport_success_text") or response.get("success_text") or default_text)
+    if outcome == "delayed":
+        return str(response.get("delayed_text") or response.get("warning_text") or default_text)
+    if outcome == "error":
+        return str(response.get("error_text") or default_text)
+    return default_text
+
+
+def complete_interaction(app_id: Optional[str], interaction_token: Optional[str], channel_id: Optional[str], text: str, *, payload_obj: Optional[Dict[str, Any]] = None, outcome: str = "success_transport") -> bool:
+    payload_obj = payload_obj or {}
+    response = _response_policy(payload_obj)
+    policy_mode = str(response.get("mode") or "").strip().lower()
+    mode = policy_mode or _status_mode()
+    show_success = bool(response.get("show_success", True))
+    final_text = _status_text(payload_obj, text, outcome=outcome)
+
+    if outcome in {"success_transport", "success_local"} and not show_success:
+        mode = "silent"
+
     if mode == "silent":
         if app_id and interaction_token:
             status, _ = asyncio.run(_delete_original(app_id, interaction_token))
@@ -154,7 +184,7 @@ def complete_interaction(app_id: Optional[str], interaction_token: Optional[str]
                 return True
         return True
 
-    if mode == "errors-only" and text == SUCCESS_TEXT:
+    if mode == "errors-only" and outcome in {"success_transport", "success_local"}:
         if app_id and interaction_token:
             status, _ = asyncio.run(_delete_original(app_id, interaction_token))
             if status in (200, 202, 204):
@@ -162,11 +192,11 @@ def complete_interaction(app_id: Optional[str], interaction_token: Optional[str]
         return True
 
     if app_id and interaction_token:
-        status, _ = asyncio.run(_patch_original(app_id, interaction_token, {"content": text}))
+        status, _ = asyncio.run(_patch_original(app_id, interaction_token, {"content": final_text}))
         if status in (200, 204):
             return True
     if channel_id and mode != "silent":
-        status, _ = asyncio.run(_post_channel(channel_id, text))
+        status, _ = asyncio.run(_post_channel(channel_id, final_text))
         return status in (200, 201)
     return False
 
@@ -242,7 +272,7 @@ def process_one(row: Dict[str, Any]) -> None:
 
     local = try_local_dispatch(semantic_action, payload_obj, row)
     if local is not None:
-        ok = complete_interaction(app_id, interaction_token, channel_id, local)
+        ok = complete_interaction(app_id, interaction_token, channel_id, local, payload_obj=payload_obj, outcome="success_local")
         if ok:
             db.set_done(iid, note="local-dispatch")
         else:
@@ -252,10 +282,10 @@ def process_one(row: Dict[str, Any]) -> None:
     normalized = build_openclaw_prompt(row, semantic_action, payload_obj)
     res = injector.inject(iid, normalized)
     if res.get("ok"):
-        complete_interaction(app_id, interaction_token, channel_id, SUCCESS_TEXT)
-        db.set_done(iid, note="injected-cli")
+        complete_interaction(app_id, interaction_token, channel_id, SUCCESS_TEXT, payload_obj=payload_obj, outcome="success_transport")
+        db.set_done(iid, note="delivered-to-openclaw")
         return
-    complete_interaction(app_id, interaction_token, channel_id, DELAY_TEXT)
+    complete_interaction(app_id, interaction_token, channel_id, DELAY_TEXT, payload_obj=payload_obj, outcome="delayed")
     db.set_done_fallback(iid, note=res.get("mode") or "inject-fallback")
 
 

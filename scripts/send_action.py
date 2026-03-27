@@ -263,6 +263,15 @@ def _modal_trigger_component(card_id: str, modal_spec: Dict[str, Any], action_da
         "fields": _modal_fields_from_spec(list(modal_spec.get("fields") or [])),
     }
 
+    trigger_single_use = 0 if modal_spec.get("trigger_reusable") is True else _normalize_single_use(
+        {**modal_spec, "single_use": modal_spec.get("trigger_single_use", 0 if modal_spec.get("trigger_reusable") is True else modal_spec.get("single_use"))},
+        default_reusable=True,
+    )
+    submit_single_use = _normalize_single_use(
+        {**modal_spec, "single_use": modal_spec.get("submit_single_use", modal_spec.get("single_use", 1))},
+        default_reusable=default_reusable,
+    )
+
     trigger_component = {"type": 2, "style": style, "label": label, "custom_id": trigger_custom_id}
     trigger_entry = RegistryEntry(
         custom_id=trigger_custom_id,
@@ -270,7 +279,7 @@ def _modal_trigger_component(card_id: str, modal_spec: Dict[str, Any], action_da
         label=label,
         semantic_action=str(modal_payload.get("target") or "modal.open"),
         payload_json=json.dumps(modal_payload, ensure_ascii=False),
-        single_use=_normalize_single_use(modal_spec, default_reusable),
+        single_use=trigger_single_use,
         expires_at=modal_spec.get("expires_at") or modal_spec.get("expiresAt"),
     )
     submit_entry = RegistryEntry(
@@ -279,7 +288,7 @@ def _modal_trigger_component(card_id: str, modal_spec: Dict[str, Any], action_da
         label=str(modal_spec.get("title") or "Form"),
         semantic_action=str(modal_payload.get("target") or "modal.submit"),
         payload_json=json.dumps(modal_payload, ensure_ascii=False),
-        single_use=_normalize_single_use(modal_spec, default_reusable),
+        single_use=submit_single_use,
         expires_at=modal_spec.get("expires_at") or modal_spec.get("expiresAt"),
     )
     return trigger_component, trigger_entry, submit_entry
