@@ -1,0 +1,15 @@
+[Unit]
+Description=discord-component-v2 worker (normalize + inject)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=__INSTALL_DIR__
+Environment=PYTHONUNBUFFERED=1
+Environment=DISCORD_COMPONENT_V2_WORKSPACE_ID=__WORKSPACE_ID__
+ExecStart=__PYTHON__ __INSTALL_DIR__/scripts/worker.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

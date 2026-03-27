@@ -184,7 +184,7 @@ export DISCORD_COMPONENT_V2_INTERACTION_STATUS=errors-only
 - Modal trigger and modal submit single-use behavior can now be controlled separately in payloads.
 - Modal submit handling currently prefers stability over rich interaction-native follow-up replies; local modal submits may complete through recorded state and downstream/channel output rather than a second interaction callback.
 - Install paths, service names, and local state are now namespaced per workspace to reduce accidental cross-workspace collisions.
-- Runtime service templates are packaged under `resources/systemd/` so install flows do not depend on root-level `systemd/` directories being preserved by external packaging systems.
+- Runtime service templates are packaged under `scripts/systemd/` so install flows do not depend on root-level directories being preserved by external packaging systems.
 - Broker startup now uses a token-based local lock file to reduce accidental duplicate consumers for the same Discord bot token on the same machine.
 
 ## Troubleshooting
