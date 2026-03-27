@@ -183,8 +183,8 @@ install_services() {
   fi
   mkdir -p "$SYSTEMD_USER_DIR"
   local python_path="$INSTALL_DIR/.venv/bin/python"
-  local broker_template="$INSTALL_DIR/scripts/systemd/discord-component-v2-broker.service.template"
-  local worker_template="$INSTALL_DIR/scripts/systemd/discord-component-v2-worker.service.template"
+  local broker_template="$INSTALL_DIR/systemd/discord-component-v2-broker.service.template"
+  local worker_template="$INSTALL_DIR/systemd/discord-component-v2-worker.service.template"
   if [[ ! -f "$broker_template" || ! -f "$worker_template" ]]; then
     warn "Systemd service templates are missing from the installed package."
     warn "Expected: $broker_template and $worker_template"

@@ -18,7 +18,7 @@ check_exists() {
 
 echo "[validate] mode=$MODE"
 
-for path in README.md SKILL.md install.sh manage.sh uninstall.sh validate.sh lib/config.py lib/db.py scripts/broker_gateway.py scripts/worker.py scripts/injector.py schema/init.sql requirements.txt scripts/systemd/discord-component-v2-broker.service.template scripts/systemd/discord-component-v2-worker.service.template; do
+for path in README.md SKILL.md install.sh manage.sh uninstall.sh validate.sh lib/config.py lib/db.py scripts/broker_gateway.py scripts/worker.py scripts/injector.py schema/init.sql requirements.txt systemd/discord-component-v2-broker.service.template systemd/discord-component-v2-worker.service.template; do
   check_exists "$path"
 done
 

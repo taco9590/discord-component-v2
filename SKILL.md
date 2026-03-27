@@ -39,7 +39,7 @@ Verify the local environment:
 ./validate.sh
 ```
 
-Service templates are packaged under `scripts/systemd/` so service registration does not depend on root-level directories that may be omitted by external packaging systems.
+Service templates are stored under the root `systemd/` directory and are used during service registration on systems with user systemd available.
 
 If user systemd is unavailable or service registration is skipped, you can still run the bridge manually:
 

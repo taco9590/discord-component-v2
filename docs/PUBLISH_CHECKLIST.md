@@ -7,7 +7,7 @@
 - [ ] examples contain no private IDs or tokens
 - [ ] `.venv`, runtime DB files, inbox logs, token locks, and caches are excluded
 - [ ] install, uninstall, and service naming reflect workspace-scoped behavior
-- [ ] published artifact includes runtime service templates (`scripts/systemd/*.service.template`)
+- [ ] published artifact includes runtime service templates (`systemd/*.service.template`)
 
 ## Validation
 
