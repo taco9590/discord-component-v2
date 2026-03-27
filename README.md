@@ -184,6 +184,10 @@ See `docs/TROUBLESHOOTING.md` for common cases such as:
 - gateway disconnects and reconnect behavior
 - fallback delivery after deferred interaction expiry
 
+## Test plan
+
+Run the operator-facing release checks in `docs/TEST_PLAN.md` before publishing or claiming stable support.
+
 ## Packaging hygiene
 
 Do not publish:

@@ -40,6 +40,7 @@
 - [ ] select interactions normalize values as expected
 - [ ] modal submit interactions are accepted and reinjected correctly
 - [ ] deferred response fallback behavior is verified for expired / failed completion paths
+- [ ] `docs/TEST_PLAN.md` has been exercised against the current build
 
 ## Semantics review
 
