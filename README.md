@@ -145,7 +145,7 @@ You can additionally carry optional routing hints in payloads:
 }
 ```
 
-These hints are stored with the component record and included in the reinjected envelope for downstream handling. They improve observability and future routing control, but they do not by themselves guarantee exact session affinity.
+These hints are stored with the component record and included in the reinjected envelope for downstream handling. They are also recorded in delivery attempts and inbox fallback records to make routing diagnostics easier. They improve observability and future routing control, but they do not by themselves guarantee exact session affinity.
 
 Example:
 

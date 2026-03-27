@@ -16,7 +16,13 @@
           { "label": "Normal", "value": "normal" },
           { "label": "High", "value": "high" }
         ],
-        "max_values": 1
+        "max_values": 1,
+        "interaction": {
+          "response": {
+            "transport_success_text": "Priority change forwarded to OpenClaw.",
+            "delayed_text": "Priority selection accepted, but delivery was delayed."
+          }
+        }
       }
     }
   ],
@@ -24,6 +30,8 @@
     "title": "Add details",
     "triggerLabel": "Open form",
     "action": "workflow.submit_details",
+    "trigger_reusable": true,
+    "submit_single_use": true,
     "fields": [
       {
         "type": "text",
@@ -43,6 +51,16 @@
   },
   "action_data": {
     "kind": "dispatch",
+    "agent_hint": "discord-test",
+    "session_hint": "session:select-modal-demo",
+    "thread_hint": "priority-form",
+    "interaction": {
+      "response": {
+        "transport_success_text": "Interactive action forwarded to OpenClaw.",
+        "delayed_text": "The interaction was accepted, but downstream delivery was delayed.",
+        "error_text": "The interactive action failed. Inspect bridge logs."
+      }
+    },
     "args": {
       "request_id": "demo-select-modal-001"
     }

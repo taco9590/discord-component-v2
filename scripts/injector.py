@@ -27,6 +27,18 @@ def inject(interaction_id: str, normalized_text: str) -> dict:
     except Exception:
         pass
 
+    hint_meta = {}
+    try:
+        parsed = json.loads(normalized_text.split("```json", 1)[1].rsplit("```", 1)[0]) if "```json" in normalized_text else {}
+        hints = parsed.get("hints") if isinstance(parsed.get("hints"), dict) else {}
+        hint_meta = {
+            "agent_hint": hints.get("agent_hint") or hints.get("agentHint"),
+            "session_hint": hints.get("session_hint") or hints.get("sessionHint"),
+            "thread_hint": hints.get("thread_hint") or hints.get("threadHint"),
+        }
+    except Exception:
+        hint_meta = {}
+
     if not channel_id:
         inbox_lib.append_record(
             {
@@ -40,6 +52,7 @@ def inject(interaction_id: str, normalized_text: str) -> dict:
                 "channel_id": channel_id,
                 "reason": "no-channel-target",
                 "text": normalized_text,
+                "hints": hint_meta,
             }
         )
         db.set_done_fallback(interaction_id, note="no-channel-target")
@@ -65,7 +78,7 @@ def inject(interaction_id: str, normalized_text: str) -> dict:
             interaction_id,
             "cli",
             1,
-            json.dumps({"cmd": cmd, "text": normalized_text}, ensure_ascii=False),
+            json.dumps({"cmd": cmd, "text": normalized_text, "hints": hint_meta}, ensure_ascii=False),
             json.dumps({"rc": proc.returncode, "stdout": proc.stdout, "stderr": proc.stderr}, ensure_ascii=False),
             "success" if proc.returncode == 0 else "fail",
         )
@@ -87,6 +100,7 @@ def inject(interaction_id: str, normalized_text: str) -> dict:
                 "reason": "cli-failed",
                 "cli_cmd": cmd,
                 "text": normalized_text,
+                "hints": hint_meta,
                 "error": str(e),
             }
         )

@@ -32,6 +32,13 @@
           "action": "discord.reply_text",
           "args": {
             "text": "Cancelled."
+          },
+          "interaction": {
+            "response": {
+              "mode": "errors-only",
+              "show_success": false,
+              "local_success_text": "Cancelled."
+            }
           }
         }
       ]
@@ -39,6 +46,16 @@
   ],
   "action_data": {
     "kind": "dispatch",
+    "agent_hint": "discord-test",
+    "session_hint": "session:approval-demo",
+    "thread_hint": "req-001",
+    "interaction": {
+      "response": {
+        "transport_success_text": "Approval request forwarded to OpenClaw.",
+        "delayed_text": "Approval click accepted, but downstream delivery was delayed.",
+        "error_text": "Approval handling failed. Check bridge logs."
+      }
+    },
     "args": {
       "request_id": "REQ-001"
     }

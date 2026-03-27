@@ -22,6 +22,12 @@
           "action": "discord.reply_text",
           "args": {
             "text": "Cancelled."
+          },
+          "interaction": {
+            "response": {
+              "mode": "errors-only",
+              "show_success": false
+            }
           }
         }
       ]
@@ -29,6 +35,14 @@
   ],
   "action_data": {
     "kind": "dispatch",
+    "agent_hint": "discord-test",
+    "session_hint": "session:restricted-demo",
+    "interaction": {
+      "response": {
+        "transport_success_text": "Restricted action forwarded to OpenClaw.",
+        "error_text": "Restricted action failed. Verify permissions and routing."
+      }
+    },
     "args": {
       "request_id": "demo-001"
     }
