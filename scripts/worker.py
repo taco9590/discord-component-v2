@@ -26,7 +26,7 @@ DEFAULT_LOCAL_SUCCESS_TEXT = "✅ Completed."
 def _load_component_payload(message_id: str, custom_id: str) -> tuple[str, Dict[str, Any]]:
     conn = db.get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT semantic_action, payload_json FROM components WHERE message_id=? AND custom_id=?", (message_id, custom_id))
+    cur.execute("SELECT semantic_action, payload_json, agent_hint, session_hint, thread_hint FROM components WHERE message_id=? AND custom_id=?", (message_id, custom_id))
     row = cur.fetchone()
     conn.close()
     if not row:
@@ -35,6 +35,12 @@ def _load_component_payload(message_id: str, custom_id: str) -> tuple[str, Dict[
         payload = json.loads(row["payload_json"]) if row["payload_json"] else {}
     except Exception:
         payload = {}
+    if row["agent_hint"] and "agent_hint" not in payload:
+        payload["agent_hint"] = row["agent_hint"]
+    if row["session_hint"] and "session_hint" not in payload:
+        payload["session_hint"] = row["session_hint"]
+    if row["thread_hint"] and "thread_hint" not in payload:
+        payload["thread_hint"] = row["thread_hint"]
     return (row["semantic_action"] or ""), payload
 
 
@@ -76,6 +82,11 @@ def build_openclaw_prompt(row: Dict[str, Any], semantic_action: str, payload_obj
         "payload": payload_obj,
         "source_message_summary": source_summary,
         "component": bridge_component,
+        "hints": {
+            "agent_hint": payload_obj.get("agent_hint") or payload_obj.get("agentHint"),
+            "session_hint": payload_obj.get("session_hint") or payload_obj.get("sessionHint"),
+            "thread_hint": payload_obj.get("thread_hint") or payload_obj.get("threadHint"),
+        },
         "reply": {"channel": "discord", "target": f"channel:{channel_id}" if channel_id else None},
     }
     return (

@@ -175,6 +175,9 @@ def _button_component(card_id: str, idx: int, raw: Dict[str, Any], action_data: 
         payload_json=json.dumps(payload, ensure_ascii=False),
         single_use=_normalize_single_use(raw, default_reusable),
         expires_at=raw.get("expires_at") or raw.get("expiresAt"),
+        agent_hint=payload.get("agent_hint") or payload.get("agentHint"),
+        session_hint=payload.get("session_hint") or payload.get("sessionHint"),
+        thread_hint=payload.get("thread_hint") or payload.get("threadHint"),
     )
     return component, entry
 
@@ -214,6 +217,9 @@ def _select_component(card_id: str, idx: int, raw: Dict[str, Any], action_data: 
         payload_json=json.dumps(payload, ensure_ascii=False),
         single_use=_normalize_single_use(raw, default_reusable),
         expires_at=raw.get("expires_at") or raw.get("expiresAt"),
+        agent_hint=payload.get("agent_hint") or payload.get("agentHint"),
+        session_hint=payload.get("session_hint") or payload.get("sessionHint"),
+        thread_hint=payload.get("thread_hint") or payload.get("threadHint"),
     )
     return component, entry
 
@@ -281,6 +287,9 @@ def _modal_trigger_component(card_id: str, modal_spec: Dict[str, Any], action_da
         payload_json=json.dumps(modal_payload, ensure_ascii=False),
         single_use=trigger_single_use,
         expires_at=modal_spec.get("expires_at") or modal_spec.get("expiresAt"),
+        agent_hint=modal_payload.get("agent_hint") or modal_payload.get("agentHint"),
+        session_hint=modal_payload.get("session_hint") or modal_payload.get("sessionHint"),
+        thread_hint=modal_payload.get("thread_hint") or modal_payload.get("threadHint"),
     )
     submit_entry = RegistryEntry(
         custom_id=submit_custom_id,
@@ -290,6 +299,9 @@ def _modal_trigger_component(card_id: str, modal_spec: Dict[str, Any], action_da
         payload_json=json.dumps(modal_payload, ensure_ascii=False),
         single_use=submit_single_use,
         expires_at=modal_spec.get("expires_at") or modal_spec.get("expiresAt"),
+        agent_hint=modal_payload.get("agent_hint") or modal_payload.get("agentHint"),
+        session_hint=modal_payload.get("session_hint") or modal_payload.get("sessionHint"),
+        thread_hint=modal_payload.get("thread_hint") or modal_payload.get("threadHint"),
     )
     return trigger_component, trigger_entry, submit_entry
 
@@ -420,8 +432,8 @@ def persist_message(channel_id: str, message_id: str, content_summary: str, regi
         cur.execute(
             """
             INSERT OR REPLACE INTO components
-            (message_id, custom_id, component_type, label, semantic_action, payload_json, single_use, expires_at, status)
-            VALUES(?,?,?,?,?,?,?,?,?)
+            (message_id, custom_id, component_type, label, semantic_action, payload_json, single_use, expires_at, status, agent_hint, session_hint, thread_hint)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 message_id,
@@ -433,6 +445,9 @@ def persist_message(channel_id: str, message_id: str, content_summary: str, regi
                 entry["single_use"],
                 entry.get("expires_at"),
                 "active",
+                entry.get("agent_hint"),
+                entry.get("session_hint"),
+                entry.get("thread_hint"),
             ),
         )
     conn.commit()

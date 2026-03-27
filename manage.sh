@@ -78,8 +78,10 @@ case "$1" in
     echo "Package directory: $(pwd)"
     if [[ -x ".venv/bin/python" ]]; then
       echo "Virtual environment: present"
+      PYTHON_BIN=".venv/bin/python"
     else
       echo "Virtual environment: missing"
+      PYTHON_BIN="python3"
     fi
     if command -v uv >/dev/null 2>&1; then
       echo "uv: installed"
@@ -104,6 +106,46 @@ case "$1" in
       echo "Install manifest: present"
     else
       echo "Install manifest: missing"
+    fi
+    echo
+    echo "Bridge state summary:"
+    if [[ -f state/bridge.db ]]; then
+      "$PYTHON_BIN" - <<'PY'
+import sqlite3
+from pathlib import Path
+p = Path('state/bridge.db')
+conn = sqlite3.connect(p)
+cur = conn.cursor()
+queries = {
+    'messages': "select count(*) from messages",
+    'components_total': "select count(*) from components",
+    'components_active': "select count(*) from components where status='active'",
+    'components_used': "select count(*) from components where status='used'",
+    'interactions_total': "select count(*) from interaction_events",
+    'queued': "select count(*) from interaction_events where process_state='queued'",
+    'processing': "select count(*) from interaction_events where process_state='processing'",
+    'done': "select count(*) from interaction_events where process_state='done'",
+    'done_fallback': "select count(*) from interaction_events where process_state='done_fallback'",
+    'failed': "select count(*) from interaction_events where process_state='failed'",
+}
+for k, q in queries.items():
+    try:
+        print(f"  {k}: {cur.execute(q).fetchone()[0]}")
+    except Exception as e:
+        print(f"  {k}: error ({e})")
+try:
+    row = cur.execute("select interaction_id, custom_id, process_state, error_text, created_at from interaction_events order by created_at desc limit 5").fetchall()
+    if row:
+        print("  recent interactions:")
+        for iid, custom_id, state, error_text, created_at in row:
+            note = f" | {error_text}" if error_text else ""
+            print(f"    - {created_at} | {state} | {custom_id} | {iid}{note}")
+except Exception as e:
+    print(f"  recent interactions: error ({e})")
+conn.close()
+PY
+    else
+      echo "  state database: missing"
     fi
     echo
     ./validate.sh --quick || true

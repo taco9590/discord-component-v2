@@ -25,6 +25,9 @@ def ensure_migrations() -> None:
                 pass
     ensure_col("actions", "agent_hint", "ALTER TABLE actions ADD COLUMN agent_hint TEXT")
     ensure_col("actions", "session_hint", "ALTER TABLE actions ADD COLUMN session_hint TEXT")
+    ensure_col("components", "agent_hint", "ALTER TABLE components ADD COLUMN agent_hint TEXT")
+    ensure_col("components", "session_hint", "ALTER TABLE components ADD COLUMN session_hint TEXT")
+    ensure_col("components", "thread_hint", "ALTER TABLE components ADD COLUMN thread_hint TEXT")
     ensure_col("interaction_events", "channel_id", "ALTER TABLE interaction_events ADD COLUMN channel_id TEXT")
     ensure_col("interaction_events", "followup_message_id", "ALTER TABLE interaction_events ADD COLUMN followup_message_id TEXT")
     ensure_col("single_use_claims", "custom_id", "ALTER TABLE single_use_claims ADD COLUMN custom_id TEXT")

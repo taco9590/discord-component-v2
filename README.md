@@ -135,6 +135,18 @@ You can also override behavior per payload with `interaction.response`, for exam
 }
 ```
 
+You can additionally carry optional routing hints in payloads:
+
+```json
+{
+  "agent_hint": "discord-test",
+  "session_hint": "session:project-alpha",
+  "thread_hint": "daily-briefing"
+}
+```
+
+These hints are stored with the component record and included in the reinjected envelope for downstream handling. They improve observability and future routing control, but they do not by themselves guarantee exact session affinity.
+
 Example:
 
 ```bash
