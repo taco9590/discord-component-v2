@@ -39,6 +39,15 @@ Verify the local environment:
 ./validate.sh
 ```
 
+Service templates are packaged under `resources/systemd/` so service registration does not depend on a root-level `systemd/` directory surviving external packaging.
+
+If user systemd is unavailable or service registration is skipped, you can still run the bridge manually:
+
+```bash
+./.venv/bin/python scripts/broker_gateway.py
+./.venv/bin/python scripts/worker.py
+```
+
 ## First test
 
 Send a demo interactive message:
