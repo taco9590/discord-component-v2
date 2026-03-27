@@ -264,6 +264,11 @@ def process_one(row: Dict[str, Any]) -> None:
         db.set_failed(iid or "UNKNOWN", "missing_custom_id")
         return
 
+    normalized_text = str(row.get("normalized_text") or "")
+    if normalized_text == "modal-opened":
+        db.set_done(iid, note="modal-opened")
+        return
+
     raw_obj, app_id, interaction_token, channel_id = _parse_row_context(row)
     message_id = row.get("message_id") or str((raw_obj or {}).get("message", {}).get("id") or "")
     semantic_action, payload_obj = _load_component_payload(message_id, row["custom_id"]) if message_id else ("", {})

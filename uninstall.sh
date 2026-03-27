@@ -2,10 +2,20 @@
 set -euo pipefail
 
 PACKAGE_NAME="discord-component-v2"
-SERVICE_BROKER="${PACKAGE_NAME}-broker.service"
-SERVICE_WORKER="${PACKAGE_NAME}-worker.service"
+SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_ID="${DISCORD_COMPONENT_V2_WORKSPACE_ID:-$SRC_DIR}"
+WORKSPACE_SLUG="$(python3 - <<'PY'
+import hashlib, os
+raw = os.environ.get('WORKSPACE_ID') or ''
+base = os.path.basename(raw) or 'workspace'
+safe = ''.join(ch if ch.isalnum() or ch in '-_' else '-' for ch in base).strip('-') or 'workspace'
+print(f"{safe}-{hashlib.sha1(raw.encode('utf-8')).hexdigest()[:10]}")
+PY
+)"
+SERVICE_BROKER="${PACKAGE_NAME}-${WORKSPACE_SLUG}-broker.service"
+SERVICE_WORKER="${PACKAGE_NAME}-${WORKSPACE_SLUG}-worker.service"
 OPENCLAW_HOME="${OPENCLAW_HOME:-$HOME/.openclaw}"
-INSTALL_DIR="${INSTALL_DIR:-$OPENCLAW_HOME/workspace/skills/$PACKAGE_NAME}"
+INSTALL_DIR="${INSTALL_DIR:-$OPENCLAW_HOME/workspace/skills/$PACKAGE_NAME-$WORKSPACE_SLUG}"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 PURGE=0
 

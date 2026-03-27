@@ -99,7 +99,7 @@ def _normalize_single_use(raw: Dict[str, Any], default_reusable: bool) -> int:
         return 0
     if raw.get("reusable") is False:
         return 1
-    if "single_use" in raw:
+    if "single_use" in raw and raw.get("single_use") is not None:
         return 1 if int(raw.get("single_use", 1)) else 0
     return 0 if default_reusable else 1
 

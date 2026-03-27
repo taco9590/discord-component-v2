@@ -1,0 +1,51 @@
+{
+  "text": "## Modal-only verification",
+  "blocks": [
+    {
+      "type": "text",
+      "text": "Open the form, fill in both fields, and submit. This test should stay on the local dispatch path."
+    }
+  ],
+  "modal": {
+    "title": "Local modal test",
+    "triggerLabel": "Open local modal",
+    "action": "demo.submit_details",
+    "trigger_reusable": true,
+    "submit_single_use": true,
+    "fields": [
+      {
+        "type": "text",
+        "label": "Requester",
+        "custom_id": "requester",
+        "style": 1,
+        "required": true,
+        "placeholder": "Your name"
+      },
+      {
+        "type": "text",
+        "label": "Details",
+        "custom_id": "details",
+        "style": 2,
+        "required": true,
+        "placeholder": "What happened?"
+      }
+    ]
+  },
+  "action_data": {
+    "kind": "dispatch",
+    "agent_hint": "discord-test",
+    "session_hint": "session:modal-local-test",
+    "thread_hint": "modal-local",
+    "interaction": {
+      "response": {
+        "mode": "full",
+        "local_success_text": "Modal submission recorded.",
+        "error_text": "Modal submission failed."
+      }
+    },
+    "args": {
+      "request_id": "modal-local-001"
+    }
+  },
+  "reusable": true
+}

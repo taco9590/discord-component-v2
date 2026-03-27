@@ -103,6 +103,7 @@ Send `examples/action_select_and_modal.json`.
 ### Verify
 
 - clicking the modal trigger opens the modal without expiry
+- modal trigger interactions are not processed a second time by the worker after the broker opens the modal
 - modal submit is ACKed quickly
 - modal fields are normalized and preserved in the reinjected envelope
 - `trigger_reusable` and `submit_single_use` behave as documented
@@ -111,6 +112,7 @@ Send `examples/action_select_and_modal.json`.
 
 - trigger can be reopened when configured reusable
 - submit becomes unavailable after first successful single-use submit
+- interaction rows marked `modal-opened` do not produce duplicate follow-up replies
 
 ---
 

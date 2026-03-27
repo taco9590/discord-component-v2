@@ -1,0 +1,41 @@
+{
+  "text": "## Select-only verification",
+  "blocks": [
+    {
+      "type": "text",
+      "text": "Pick exactly one option so the bridge can record a select interaction."
+    },
+    {
+      "type": "actions",
+      "select": {
+        "type": "string",
+        "action": "demo.pick_option",
+        "placeholder": "Pick an option",
+        "options": [
+          { "label": "Option A", "value": "a" },
+          { "label": "Option B", "value": "b" },
+          { "label": "Option C", "value": "c" }
+        ],
+        "max_values": 1,
+        "interaction": {
+          "response": {
+            "mode": "full",
+            "local_success_text": "Selection recorded.",
+            "transport_success_text": "Selection forwarded to OpenClaw.",
+            "error_text": "Selection failed."
+          }
+        }
+      }
+    }
+  ],
+  "action_data": {
+    "kind": "dispatch",
+    "agent_hint": "discord-test",
+    "session_hint": "session:select-only-test",
+    "thread_hint": "select-only",
+    "args": {
+      "request_id": "select-only-001"
+    }
+  },
+  "reusable": true
+}

@@ -2,12 +2,21 @@
 set -euo pipefail
 
 PACKAGE_NAME="discord-component-v2"
-SERVICE_BROKER="${PACKAGE_NAME}-broker.service"
-SERVICE_WORKER="${PACKAGE_NAME}-worker.service"
 
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_ID="${DISCORD_COMPONENT_V2_WORKSPACE_ID:-$SRC_DIR}"
+WORKSPACE_SLUG="$(python3 - <<'PY'
+import hashlib, os
+raw = os.environ.get('WORKSPACE_ID') or ''
+base = os.path.basename(raw) or 'workspace'
+safe = ''.join(ch if ch.isalnum() or ch in '-_' else '-' for ch in base).strip('-') or 'workspace'
+print(f"{safe}-{hashlib.sha1(raw.encode('utf-8')).hexdigest()[:10]}")
+PY
+)"
+SERVICE_BROKER="${PACKAGE_NAME}-${WORKSPACE_SLUG}-broker.service"
+SERVICE_WORKER="${PACKAGE_NAME}-${WORKSPACE_SLUG}-worker.service"
 OPENCLAW_HOME="${OPENCLAW_HOME:-$HOME/.openclaw}"
-INSTALL_DIR="${INSTALL_DIR:-$OPENCLAW_HOME/workspace/skills/$PACKAGE_NAME}"
+INSTALL_DIR="${INSTALL_DIR:-$OPENCLAW_HOME/workspace/skills/$PACKAGE_NAME-$WORKSPACE_SLUG}"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 MANIFEST_PATH="$INSTALL_DIR/.install-manifest"
 BACKUP_SUFFIX="$(date +%Y%m%d-%H%M%S)"
@@ -174,8 +183,8 @@ install_services() {
   fi
   mkdir -p "$SYSTEMD_USER_DIR"
   local python_path="$INSTALL_DIR/.venv/bin/python"
-  sed -e "s#__INSTALL_DIR__#$INSTALL_DIR#g" -e "s#__PYTHON__#$python_path#g" "$INSTALL_DIR/systemd/$SERVICE_BROKER.template" > "$SYSTEMD_USER_DIR/$SERVICE_BROKER"
-  sed -e "s#__INSTALL_DIR__#$INSTALL_DIR#g" -e "s#__PYTHON__#$python_path#g" "$INSTALL_DIR/systemd/$SERVICE_WORKER.template" > "$SYSTEMD_USER_DIR/$SERVICE_WORKER"
+  sed -e "s#__INSTALL_DIR__#$INSTALL_DIR#g" -e "s#__PYTHON__#$python_path#g" -e "s#__WORKSPACE_ID__#$WORKSPACE_ID#g" "$INSTALL_DIR/systemd/discord-component-v2-broker.service.template" > "$SYSTEMD_USER_DIR/$SERVICE_BROKER"
+  sed -e "s#__INSTALL_DIR__#$INSTALL_DIR#g" -e "s#__PYTHON__#$python_path#g" -e "s#__WORKSPACE_ID__#$WORKSPACE_ID#g" "$INSTALL_DIR/systemd/discord-component-v2-worker.service.template" > "$SYSTEMD_USER_DIR/$SERVICE_WORKER"
   systemctl --user daemon-reload
   systemctl --user enable --now "$SERVICE_BROKER"
   systemctl --user enable --now "$SERVICE_WORKER"

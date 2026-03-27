@@ -71,6 +71,23 @@ Current limitation:
 - reconnect behavior is recovery-oriented, not a guarantee of event replay
 - if the broker is down or restarting while a user clicks a component, that click can still be lost
 
+## Workspace isolation
+
+This package should be treated as workspace-scoped runtime state, not as a single shared global daemon.
+
+Current hardening:
+
+- state directory is namespaced per workspace
+- default install directory is namespaced per workspace
+- default systemd user service names are namespaced per workspace
+- systemd services export a workspace id so broker and worker resolve the same state paths
+- broker startup uses a token-based local lock file to reduce duplicate consumers for the same Discord bot token on the same machine
+
+Important limitation:
+
+- the token lock is local-machine coordination, not a distributed lock
+- if multiple workspaces intentionally share the same Discord bot token across different hosts, they can still compete for the same Discord interaction stream
+
 ## Security and privacy
 
 - treat `DISCORD_BOT_TOKEN` as a secret

@@ -1,0 +1,42 @@
+{
+  "text": "## Single-use verification",
+  "blocks": [
+    {
+      "type": "text",
+      "text": "Click the button once. The second click should be blocked as already used."
+    },
+    {
+      "type": "actions",
+      "buttons": [
+        {
+          "label": "Run single-use test",
+          "style": "success",
+          "action": "discord.reply_text",
+          "allowed_users": [
+            "user:1158323661225332776"
+          ],
+          "args": {
+            "text": "Single-use test completed."
+          },
+          "interaction": {
+            "response": {
+              "mode": "full",
+              "local_success_text": "Single-use test completed.",
+              "error_text": "Single-use test failed."
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "action_data": {
+    "kind": "dispatch",
+    "agent_hint": "discord-test",
+    "session_hint": "session:single-use-test",
+    "thread_hint": "single-use",
+    "args": {
+      "request_id": "single-use-001"
+    }
+  },
+  "reusable": false
+}

@@ -15,6 +15,7 @@ sys.path.insert(0, BASE)
 
 from lib import db
 from lib.config import discord_user_agent, load_discord_token
+from lib.runtime_lock import acquire_token_lock, release_token_lock
 
 COMPONENT_PREFIXES = ("ocb:", "occomp:", "ocm:")
 EPHEMERAL_FLAG = 1 << 6
@@ -210,14 +211,27 @@ def claim_component(message_id: str, custom_id: str, single_use: int, interactio
 
 
 def _flatten_modal_components(nodes: Any, out: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
-    out = out or []
+    if out is None:
+        out = []
     if isinstance(nodes, list):
         for item in nodes:
             _flatten_modal_components(item, out)
         return out
     if not isinstance(nodes, dict):
         return out
-    if nodes.get("custom_id") and nodes.get("type") not in {18}:
+
+    nested = nodes.get("component") if isinstance(nodes.get("component"), dict) else None
+    if nested and nested.get("custom_id"):
+        entry = {
+            "custom_id": nested.get("custom_id"),
+            "type": nested.get("type"),
+        }
+        if nested.get("value") is not None:
+            entry["value"] = nested.get("value")
+        if nested.get("values") is not None:
+            entry["values"] = nested.get("values")
+        out.append(entry)
+    elif nodes.get("custom_id") and nodes.get("type") not in {18}:
         entry = {
             "custom_id": nodes.get("custom_id"),
             "type": nodes.get("type"),
@@ -227,8 +241,7 @@ def _flatten_modal_components(nodes: Any, out: Optional[List[Dict[str, Any]]] = 
         if nodes.get("values") is not None:
             entry["values"] = nodes.get("values")
         out.append(entry)
-    if isinstance(nodes.get("component"), dict):
-        _flatten_modal_components(nodes["component"], out)
+
     if isinstance(nodes.get("components"), list):
         _flatten_modal_components(nodes["components"], out)
     return out
@@ -453,4 +466,17 @@ async def run_forever() -> None:
 
 if __name__ == "__main__":
     import contextlib
-    asyncio.run(run_forever())
+
+    token = load_discord_token()
+    if not token:
+        raise SystemExit("No Discord token found in config or DISCORD_BOT_TOKEN")
+    ok, lock_path, existing = acquire_token_lock(token)
+    if not ok:
+        raise SystemExit(
+            f"Another discord-component-v2 broker appears to be active for this Discord token: "
+            f"workspace={existing.get('workspace')} pid={existing.get('pid')} lock={lock_path}"
+        )
+    try:
+        asyncio.run(run_forever())
+    finally:
+        release_token_lock(token)
