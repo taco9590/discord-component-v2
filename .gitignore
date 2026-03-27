@@ -1,8 +1,9 @@
 .venv/
 __pycache__/
 *.pyc
-state/bridge.db
-state/openclaw_inbox.jsonl
+state/**/*.db
+state/**/*.jsonl
+state/**/runtime/
 .install-manifest
 *.bak-*
 .DS_Store

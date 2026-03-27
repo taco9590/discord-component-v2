@@ -83,3 +83,7 @@ def log_delivery_attempt(interaction_id, adapter, attempt_no, request_payload, r
         (interaction_id, adapter, attempt_no, request_payload, response_payload, result),
     )
     conn.commit(); conn.close()
+
+
+def log_callback_attempt(interaction_id, kind, request_payload, response_payload, result):
+    log_delivery_attempt(interaction_id, f"callback:{kind}", 1, request_payload, response_payload, result)

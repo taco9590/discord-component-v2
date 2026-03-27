@@ -193,6 +193,23 @@ See `docs/TROUBLESHOOTING.md` for common cases such as:
 - gateway disconnects and reconnect behavior
 - fallback delivery after deferred interaction expiry
 
+## Known limitations
+
+- **Modal submit handling is stability-first.**  
+  Modal open uses Discord's native interaction callback, but modal submit follow-up currently favors reliable persistence and downstream processing over rich interaction-native reply behavior. In practice, this means a modal submit may complete through bridge state and worker/downstream output rather than always producing a second polished native interaction response.
+
+- **Duplicate-consumer protection is local to one host.**  
+  The broker uses a token-based local lock file to reduce accidental duplicate consumers for the same Discord bot token on the same machine. This is not a distributed lock and does not coordinate across multiple hosts.
+
+- **Session affinity is improved, not guaranteed.**  
+  `agent_hint`, `session_hint`, and `thread_hint` improve routing diagnostics and can improve routing behavior, but exact session affinity still depends on the receiving OpenClaw runtime and the validity of the supplied session id.
+
+- **Downstream action success is separate from bridge transport success.**  
+  A bridge interaction can be accepted, normalized, and delivered correctly while the downstream OpenClaw action still fails, is delayed, or routes differently than expected.
+
+- **Reconnect is recovery-oriented, not replay-safe.**  
+  The broker reconnects automatically, but it does not guarantee event replay across all restart or disconnect windows.
+
 ## Test plan
 
 Run the operator-facing release checks in `docs/TEST_PLAN.md` before publishing or claiming stable support.
