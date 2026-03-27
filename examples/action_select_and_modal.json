@@ -1,0 +1,51 @@
+{
+  "text": "## Interactive bridge demo",
+  "blocks": [
+    {
+      "type": "text",
+      "text": "This example shows a reusable select plus a modal trigger."
+    },
+    {
+      "type": "actions",
+      "select": {
+        "type": "string",
+        "action": "workflow.set_priority",
+        "placeholder": "Set priority",
+        "options": [
+          { "label": "Low", "value": "low" },
+          { "label": "Normal", "value": "normal" },
+          { "label": "High", "value": "high" }
+        ],
+        "max_values": 1
+      }
+    }
+  ],
+  "modal": {
+    "title": "Add details",
+    "triggerLabel": "Open form",
+    "action": "workflow.submit_details",
+    "fields": [
+      {
+        "type": "text",
+        "label": "Requester",
+        "custom_id": "requester",
+        "style": 1,
+        "required": false
+      },
+      {
+        "type": "text",
+        "label": "Details",
+        "custom_id": "details",
+        "style": 2,
+        "required": false
+      }
+    ]
+  },
+  "action_data": {
+    "kind": "dispatch",
+    "args": {
+      "request_id": "demo-select-modal-001"
+    }
+  },
+  "reusable": true
+}

@@ -1,0 +1,12 @@
+{
+  "text": "📅 Daily briefing · 2026-03-27",
+  "blocks": [
+    {"type": "text", "text": "## Schedule"},
+    {"type": "separator"},
+    {"type": "text", "text": "• 09:00 stand-up\n• 14:00 code review"},
+    {"type": "separator"},
+    {"type": "text", "text": "## IT / AI highlights"},
+    {"type": "separator"},
+    {"type": "text", "text": "• New model release roundup\n• Discord workflow smoke test"}
+  ]
+}

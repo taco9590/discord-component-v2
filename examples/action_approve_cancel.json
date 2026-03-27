@@ -1,0 +1,47 @@
+{
+  "text": "## Approval request",
+  "blocks": [
+    {
+      "type": "text",
+      "text": "Review the request below and choose an action."
+    },
+    {
+      "type": "separator"
+    },
+    {
+      "type": "text",
+      "text": "- Request ID: REQ-001\n- Owner: taco\n- Scope: retry last deployment"
+    },
+    {
+      "type": "actions",
+      "buttons": [
+        {
+          "label": "Approve",
+          "style": "success",
+          "action": "workflow.approve",
+          "args": {
+            "decision": "approve"
+          },
+          "allowed_users": [
+            "user:123456789012345678"
+          ]
+        },
+        {
+          "label": "Cancel",
+          "style": "danger",
+          "action": "discord.reply_text",
+          "args": {
+            "text": "Cancelled."
+          }
+        }
+      ]
+    }
+  ],
+  "action_data": {
+    "kind": "dispatch",
+    "args": {
+      "request_id": "REQ-001"
+    }
+  },
+  "reusable": false
+}

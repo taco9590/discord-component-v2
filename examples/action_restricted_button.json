@@ -1,0 +1,37 @@
+{
+  "text": "## Restricted action",
+  "blocks": [
+    {
+      "type": "text",
+      "text": "Only the configured Discord user may approve this operation."
+    },
+    {
+      "type": "actions",
+      "buttons": [
+        {
+          "label": "Approve",
+          "style": "success",
+          "action": "workflow.approve",
+          "allowed_users": [
+            "user:123456789012345678"
+          ]
+        },
+        {
+          "label": "Cancel",
+          "style": "danger",
+          "action": "discord.reply_text",
+          "args": {
+            "text": "Cancelled."
+          }
+        }
+      ]
+    }
+  ],
+  "action_data": {
+    "kind": "dispatch",
+    "args": {
+      "request_id": "demo-001"
+    }
+  },
+  "reusable": false
+}
