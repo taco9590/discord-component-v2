@@ -1,5 +1,7 @@
 # discord-component-v2
 
+**Current status:** beta / release candidate
+
 `discord-component-v2` is an OpenClaw companion package for reliable Discord Components v2 workflows.
 
 It exists to bridge the current gap between:
