@@ -62,8 +62,17 @@ def inject(interaction_id: str, normalized_text: str) -> dict:
     cmd = [
         openclaw_binary(),
         "agent",
-        "--to",
-        target,
+    ]
+    if hint_meta.get("agent_hint"):
+        cmd.extend(["--agent", str(hint_meta["agent_hint"])])
+    session_hint = str(hint_meta.get("session_hint") or "").strip()
+    if session_hint:
+        if session_hint.startswith("session:"):
+            session_hint = session_hint.split(":", 1)[1]
+        cmd.extend(["--session-id", session_hint])
+    else:
+        cmd.extend(["--to", target])
+    cmd.extend([
         "--message",
         normalized_text,
         "--deliver",
@@ -71,7 +80,7 @@ def inject(interaction_id: str, normalized_text: str) -> dict:
         "discord",
         "--reply-to",
         target,
-    ]
+    ])
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=int(os.environ.get("OPENCLAW_INJECT_FAST_TIMEOUT", "15")))
         db.log_delivery_attempt(

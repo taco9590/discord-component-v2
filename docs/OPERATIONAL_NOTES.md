@@ -39,9 +39,16 @@ Current routing is strongest at the channel level.
 - the worker reinjects back toward that same Discord channel
 - this is designed to preserve reply locality
 
+The injector can also use optional hints:
+
+- `agent_hint` -> `openclaw agent --agent ...`
+- `session_hint` -> `openclaw agent --session-id ...`
+- if `session_hint` is absent, injector falls back to `--to channel:<id>` routing
+
 Current limitation:
 
-- if multiple conversational contexts share one channel, deterministic session affinity depends on OpenClaw's current routing behavior
+- if multiple conversational contexts share one channel, deterministic session affinity still depends on OpenClaw's current routing behavior and on the validity of any supplied session id
+- `thread_hint` is currently diagnostic only
 - operators should not over-claim that the bridge alone guarantees exact session targeting in every shared-channel scenario
 
 ## Completion semantics

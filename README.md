@@ -145,7 +145,17 @@ You can additionally carry optional routing hints in payloads:
 }
 ```
 
-These hints are stored with the component record and included in the reinjected envelope for downstream handling. They are also recorded in delivery attempts and inbox fallback records to make routing diagnostics easier. They improve observability and future routing control, but they do not by themselves guarantee exact session affinity.
+These hints are stored with the component record and included in the reinjected envelope for downstream handling. They are also recorded in delivery attempts and inbox fallback records to make routing diagnostics easier.
+
+Current injector behavior:
+
+- `agent_hint` is passed through to `openclaw agent --agent ...`
+- `session_hint` is passed through to `openclaw agent --session-id ...`
+- if no `session_hint` is provided, the injector falls back to channel-derived routing with `--to channel:<id>`
+
+`thread_hint` is currently diagnostic only.
+
+These hints improve observability and can improve routing control, but exact session affinity still depends on the target OpenClaw runtime and the validity of the supplied session id.
 
 Example:
 
