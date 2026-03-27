@@ -50,12 +50,17 @@ async def interaction_callback(session, token, interaction_id, interaction_token
 
 
 async def ack_defer(session, token, interaction_id, interaction_token):
-    return await interaction_callback(session, token, interaction_id, interaction_token, {"type": 5})
+    body = {"type": 5}
+    status, data = await interaction_callback(session, token, interaction_id, interaction_token, body)
+    db.log_callback_attempt(interaction_id, "defer", json.dumps(body, ensure_ascii=False), json.dumps({"status": status, "data": data}, ensure_ascii=False), "success" if status in (200, 204) else "fail")
+    return status, data
 
 
 async def ack_ephemeral_message(session, token, interaction_id, interaction_token, content: str):
     body = {"type": 4, "data": {"content": content, "flags": EPHEMERAL_FLAG}}
-    return await interaction_callback(session, token, interaction_id, interaction_token, body)
+    status, data = await interaction_callback(session, token, interaction_id, interaction_token, body)
+    db.log_callback_attempt(interaction_id, "ephemeral", json.dumps(body, ensure_ascii=False), json.dumps({"status": status, "data": data}, ensure_ascii=False), "success" if status in (200, 204) else "fail")
+    return status, data
 
 
 def _modal_component_from_field(field: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -112,7 +117,9 @@ async def ack_modal(session, token, interaction_id, interaction_token, title="In
         if component:
             components.append(component)
     body = {"type": 9, "data": {"title": title[:45], "custom_id": custom_id[:100], "components": components[:5]}}
-    return await interaction_callback(session, token, interaction_id, interaction_token, body)
+    status, data = await interaction_callback(session, token, interaction_id, interaction_token, body)
+    db.log_callback_attempt(interaction_id, "modal", json.dumps(body, ensure_ascii=False), json.dumps({"status": status, "data": data}, ensure_ascii=False), "success" if status in (200, 204) else "fail")
+    return status, data
 
 
 def lookup_component(message_id: Optional[str], custom_id: str) -> Optional[Dict[str, Any]]:
@@ -272,6 +279,31 @@ def _enrich_payload_for_enqueue(info: Dict[str, Any], payload: dict) -> dict:
     return enriched
 
 
+def _try_local_result(info: Dict[str, Any], payload: dict) -> Optional[str]:
+    payload_obj = info.get("payload") or {}
+    target = str(payload_obj.get("target") or info.get("semantic_action") or "").strip()
+    args = payload_obj.get("args") if isinstance(payload_obj.get("args"), dict) else {}
+    bridge_component = (payload.get("bridge_component") or {}) if isinstance(payload, dict) else {}
+
+    if target in {"say_hello", "demo.say_hello"}:
+        return args.get("text") or "Hello."
+    if target in {"discord.reply_text", "reply_text"}:
+        return args.get("text") or "Done."
+    if target in {"demo.pick_option"}:
+        values = bridge_component.get("values") or []
+        return f"You selected: {', '.join(values) if values else 'nothing'}"
+    if target in {"demo.submit_details"}:
+        fields = bridge_component.get("fields") or []
+        rendered = []
+        for field in fields:
+            if field.get("value") is not None:
+                rendered.append(f"{field.get('custom_id')}: {field.get('value')}")
+            elif field.get("values") is not None:
+                rendered.append(f"{field.get('custom_id')}: {', '.join(field.get('values') or [])}")
+        return "Submitted form:\n" + ("\n".join(rendered) if rendered else "(empty)")
+    return None
+
+
 async def handle_message_component(session: aiohttp.ClientSession, token: str, payload: dict) -> None:
     interaction_id = str(payload.get("id"))
     interaction_token = payload.get("token")
@@ -322,7 +354,7 @@ async def handle_message_component(session: aiohttp.ClientSession, token: str, p
 
     if info.get("component_type") == "modal_trigger":
         modal = (info.get("payload") or {}).get("modal") or {}
-        await ack_modal(
+        status, _ = await ack_modal(
             session,
             token,
             interaction_id,
@@ -332,12 +364,29 @@ async def handle_message_component(session: aiohttp.ClientSession, token: str, p
             fields=list(modal.get("fields") or []),
         )
         db.mark_acked(interaction_id)
-        db.enqueue_normalized(interaction_id, "modal-opened")
+        if status in (200, 204):
+            db.enqueue_normalized(interaction_id, "modal-opened")
+            db.set_done(interaction_id, note="modal-opened")
+        else:
+            db.set_failed(interaction_id, f"modal-open-failed:{status}")
         return
 
-    await ack_defer(session, token, interaction_id, interaction_token)
+    local_result = _try_local_result(info, json.loads(raw))
+    if local_result is not None:
+        status, _ = await ack_ephemeral_message(session, token, interaction_id, interaction_token, local_result)
+        db.mark_acked(interaction_id)
+        if status in (200, 204):
+            db.set_done(interaction_id, note="local-dispatch")
+        else:
+            db.set_failed(interaction_id, f"local-ephemeral-failed:{status}")
+        return
+
+    status, _ = await ack_defer(session, token, interaction_id, interaction_token)
     db.mark_acked(interaction_id)
-    db.enqueue_normalized(interaction_id, "queued")
+    if status in (200, 204):
+        db.enqueue_normalized(interaction_id, "queued")
+    else:
+        db.set_failed(interaction_id, f"defer-failed:{status}")
 
 
 async def handle_modal_submit(session: aiohttp.ClientSession, token: str, payload: dict) -> None:
@@ -388,7 +437,9 @@ async def handle_modal_submit(session: aiohttp.ClientSession, token: str, payloa
         db.set_done(interaction_id, note=reason)
         return
 
-    await ack_defer(session, token, interaction_id, interaction_token)
+    # Stability-first modal submit strategy:
+    # do not send an additional interaction-native callback here.
+    # Persist and hand off to the worker/downstream path instead.
     db.mark_acked(interaction_id)
     db.enqueue_normalized(interaction_id, "queued")
 

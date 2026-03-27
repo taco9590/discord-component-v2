@@ -179,6 +179,7 @@ export DISCORD_COMPONENT_V2_INTERACTION_STATUS=errors-only
 - For critical click paths, this package does not rely on OpenClaw's in-process component registry.
 - Broker reconnect is automatic, but current recovery is best-effort rather than guaranteed event replay.
 - Modal trigger and modal submit single-use behavior can now be controlled separately in payloads.
+- Modal submit handling currently prefers stability over rich interaction-native follow-up replies; local modal submits may complete through recorded state and downstream/channel output rather than a second interaction callback.
 - Install paths, service names, and local state are now namespaced per workspace to reduce accidental cross-workspace collisions.
 - Broker startup now uses a token-based local lock file to reduce accidental duplicate consumers for the same Discord bot token on the same machine.
 

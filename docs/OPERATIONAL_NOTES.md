@@ -60,6 +60,12 @@ There are two different kinds of success to think about:
 
 The bridge is best at transport success. Business-action success still depends on downstream OpenClaw behavior.
 
+For modal submits, the bridge currently favors stability over rich interaction-native follow-up replies. In practice this means:
+
+- modal open uses the interaction callback directly
+- modal submit is persisted and handed off to the worker/downstream path
+- operators should not assume every modal submit will produce a second native interaction reply beyond the modal flow itself
+
 When documenting or presenting status messages, keep that distinction explicit.
 
 ## Reconnect semantics
