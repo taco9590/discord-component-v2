@@ -183,8 +183,19 @@ install_services() {
   fi
   mkdir -p "$SYSTEMD_USER_DIR"
   local python_path="$INSTALL_DIR/.venv/bin/python"
-  sed -e "s#__INSTALL_DIR__#$INSTALL_DIR#g" -e "s#__PYTHON__#$python_path#g" -e "s#__WORKSPACE_ID__#$WORKSPACE_ID#g" "$INSTALL_DIR/systemd/discord-component-v2-broker.service.template" > "$SYSTEMD_USER_DIR/$SERVICE_BROKER"
-  sed -e "s#__INSTALL_DIR__#$INSTALL_DIR#g" -e "s#__PYTHON__#$python_path#g" -e "s#__WORKSPACE_ID__#$WORKSPACE_ID#g" "$INSTALL_DIR/systemd/discord-component-v2-worker.service.template" > "$SYSTEMD_USER_DIR/$SERVICE_WORKER"
+  local broker_template="$INSTALL_DIR/resources/systemd/discord-component-v2-broker.service.template"
+  local worker_template="$INSTALL_DIR/resources/systemd/discord-component-v2-worker.service.template"
+  if [[ ! -f "$broker_template" || ! -f "$worker_template" ]]; then
+    warn "Systemd service templates are missing from the installed package."
+    warn "Expected: $broker_template and $worker_template"
+    warn "This usually means the published package artifact omitted runtime service templates."
+    warn "You can still run manually:"
+    warn "  $INSTALL_DIR/.venv/bin/python $INSTALL_DIR/scripts/broker_gateway.py"
+    warn "  $INSTALL_DIR/.venv/bin/python $INSTALL_DIR/scripts/worker.py"
+    return 0
+  fi
+  sed -e "s#__INSTALL_DIR__#$INSTALL_DIR#g" -e "s#__PYTHON__#$python_path#g" -e "s#__WORKSPACE_ID__#$WORKSPACE_ID#g" "$broker_template" > "$SYSTEMD_USER_DIR/$SERVICE_BROKER"
+  sed -e "s#__INSTALL_DIR__#$INSTALL_DIR#g" -e "s#__PYTHON__#$python_path#g" -e "s#__WORKSPACE_ID__#$WORKSPACE_ID#g" "$worker_template" > "$SYSTEMD_USER_DIR/$SERVICE_WORKER"
   systemctl --user daemon-reload
   systemctl --user enable --now "$SERVICE_BROKER"
   systemctl --user enable --now "$SERVICE_WORKER"
